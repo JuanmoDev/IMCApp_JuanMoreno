@@ -1,16 +1,20 @@
 package imc;
 
 import javax.swing.*;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
+import java.net.URL;
 
 public class IMCApp extends JFrame {
 
     private JTextField txtNombre, txtEdad, txtPeso, txtEstatura;
     private JTextArea txtResultado;
+    private JLabel lblImagen;
 
     public IMCApp() {
+
         setTitle("Calculadora de IMC");
-        setSize(400, 400);
+        setSize(420, 540); // ⬅️ MÁS ALTO PARA LA IMAGEN
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
 
@@ -51,9 +55,15 @@ public class IMCApp extends JFrame {
         add(btnCalcular);
 
         txtResultado = new JTextArea();
-        txtResultado.setBounds(20, 230, 340, 100);
+        txtResultado.setBounds(20, 220, 360, 80);
         txtResultado.setEditable(false);
         add(txtResultado);
+
+        // 🖼️ Label para la imagen (tamaño correcto)
+        lblImagen = new JLabel();
+        lblImagen.setBounds(90, 320, 240, 180); // ⬅️ IDEAL PARA TUS IMÁGENES
+        lblImagen.setHorizontalAlignment(JLabel.CENTER);
+        add(lblImagen);
 
         btnCalcular.addActionListener((ActionEvent e) -> calcularIMC());
     }
@@ -67,13 +77,57 @@ public class IMCApp extends JFrame {
 
             Paciente paciente = new Paciente(nombre, edad, peso, estatura);
 
+            String diagnostico = paciente.interpretarIMC();
+
             txtResultado.setText(
                 "Paciente: " + paciente.getNombre() +
                 "\nIMC: " + String.format("%.2f", paciente.calcularIMC()) +
-                "\nDiagnóstico: " + paciente.interpretarIMC()
+                "\nDiagnóstico: " + diagnostico
             );
+
+            mostrarImagen(diagnostico);
+
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Datos inválidos");
+        }
+    }
+
+    // 🔹 MÉTODO MEJORADO: escala la imagen automáticamente
+    private void mostrarImagen(String diagnostico) {
+        String ruta = null;
+
+        switch (diagnostico) {
+            case "Bajo peso":
+                ruta = "/images/bajo_peso.png";
+                break;
+            case "Peso normal":
+                ruta = "/images/normal.png";
+                break;
+            case "Sobrepeso":
+                ruta = "/images/sobrepeso.png";
+                break;
+            case "Obesidad":
+                ruta = "/images/obesidad.png";
+                break;
+        }
+
+        URL imgURL = getClass().getResource(ruta);
+
+        if (imgURL != null) {
+            ImageIcon iconoOriginal = new ImageIcon(imgURL);
+
+            Image imagenEscalada = iconoOriginal.getImage().getScaledInstance(
+                    lblImagen.getWidth(),
+                    lblImagen.getHeight(),
+                    Image.SCALE_SMOOTH
+            );
+
+            lblImagen.setIcon(new ImageIcon(imagenEscalada));
+        } else {
+            JOptionPane.showMessageDialog(this,
+                    "No se encontró la imagen:\n" + ruta,
+                    "Error de imagen",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
